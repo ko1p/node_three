@@ -1,5 +1,31 @@
+require('dotenv').config();
+
+const { NODE_ENV, JWT_SECRET } = process.env;
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const NotFoundError = require('../errors/notFoundError');
+
+const login = ((req, res) => {
+  const { email, password } = req.body;
+  User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign(
+        { _id: user._id },
+        NODE_ENV === 'production' ? JWT_SECRET : 'secKeyForDevelopment',
+        { expiresIn: '7d' },
+      );
+      res.cookie('jwt', token, {
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+        httpOnly: true,
+        sameSite: true,
+      });
+      res.send({ token });
+    })
+    .catch((err) => {
+      res.status(401).send({ message: err.message });
+    });
+});
 
 const getAllUsers = ((req, res) => {
   User.find({})
@@ -19,10 +45,17 @@ const getUser = (req, res) => {
 };
 
 const createUser = ((req, res) => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
-    .then((user) => res.send({ data: user }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+  const {
+    name, email, password, about, avatar,
+  } = req.body;
+  bcrypt.hash(password, 10)
+    .then((hash) => {
+      User.create({
+        name, email, password: hash, about, avatar,
+      })
+        .then((user) => res.send({ data: user }))
+        .catch((err) => res.status(500).send({ message: err.message }));
+    });
 });
 
 const updateUserProfile = ((req, res) => {
@@ -49,6 +82,7 @@ const updateUserAvatar = ((req, res) => {
 });
 
 module.exports = {
+  login,
   getAllUsers,
   getUser,
   createUser,

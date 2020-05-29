@@ -16,3 +16,6 @@ node_modules
 # VS Code
 .vscode
 .history
+
+# Environment variables
+.env
