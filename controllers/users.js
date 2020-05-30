@@ -65,7 +65,7 @@ const createUser = ((req, res, next) => {
           if (err.name === 'ValidationError') {
             next(new BadRequest('Введены некорректные данные'));
           } else if (err.code === 11000) {
-            next(new Conflict(`Указанный вами email: ${err.keyValue.email} уже используется`));
+            next(new Conflict(`Указанный вами email: ${req.body.email} уже используется`));
           } else {
             next(new InternalServerError('Произошла ошибка'));
           }
