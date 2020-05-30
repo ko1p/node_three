@@ -44,7 +44,7 @@ const getUser = (req, res, next) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadRequest('Введены некорректные данные'));
+        next(new BadRequest(`Введены некорректные данные ${err.message}`));
       } else {
         handlerErrors(req, res, err);
       }
@@ -63,7 +63,7 @@ const createUser = ((req, res, next) => {
         .then((user) => res.send({ data: user }))
         .catch((err) => {
           if (err.name === 'ValidationError') {
-            next(new BadRequest('Введены некорректные данные'));
+            next(new BadRequest(`Введены некорректные данные ${err.message}`));
           } else if (err.code === 11000) {
             next(new Conflict(`Указанный вами email: ${req.body.email} уже используется`));
           } else {
@@ -85,7 +85,7 @@ const updateUserProfile = ((req, res, next) => {
     .then((userProfile) => res.send({ data: userProfile }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequest('Введены некорректные данные'));
+        next(new BadRequest(`Введены некорректные данные ${err.message}`));
       } else {
         next(new InternalServerError('Произошла ошибка'));
       }
@@ -101,7 +101,7 @@ const updateUserAvatar = ((req, res, next) => {
     .then((userProfile) => res.send({ data: userProfile }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequest('Введены некорректные данные'));
+        next(new BadRequest(`Введены некорректные данные ${err.message}`));
       } else {
         next(new InternalServerError('Произошла ошибка'));
       }

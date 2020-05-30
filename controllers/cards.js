@@ -17,7 +17,7 @@ const createCard = ((req, res, next) => {
     .then((newCard) => res.send({ data: newCard }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequest('Введены некорректные данные'));
+        next(new BadRequest(`Введены некорректные данные ${err.message}`));
       } else {
         next(new InternalServerError('Произошла ошибка'));
       }
@@ -36,7 +36,7 @@ const deleteCard = ((req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadRequest('Введены некорректные данные'));
+        next(new BadRequest(`Введены некорректные данные ${err.message}`));
       } else {
         handlerErrors(req, res, err);
       }
@@ -53,7 +53,7 @@ const likeCard = ((req, res, next) => {
     .then(() => res.send({ message: 'Карточка лайкнута' }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadRequest('Введены некорректные данные'));
+        next(new BadRequest(`Введены некорректные данные ${err.message}`));
       } else {
         handlerErrors(req, res, err);
       }
@@ -70,7 +70,7 @@ const dislikeCard = ((req, res, next) => {
     .then(() => res.send({ message: 'Лайк с карточки успешно убран' }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadRequest('Введены некорректные данные'));
+        next(new BadRequest(`Введены некорректные данные ${err.message}`));
       } else {
         handlerErrors(req, res, err);
       }
