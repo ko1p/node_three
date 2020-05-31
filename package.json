@@ -1,6 +1,6 @@
 {
   "name": "node_three",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "My third node.js project",
   "main": "app.js",
   "scripts": {
