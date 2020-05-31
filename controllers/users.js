@@ -59,7 +59,7 @@ const createUser = ((req, res) => {
       User.create({
         name, email, password: hash, about, avatar,
       })
-        .then((user) => res.send({ data: user }))
+        .then((user) => res.send({ data: user.hideHash() }))
         .catch((err) => {
           if (err.name === 'ValidationError') {
             handlerErrors(req, res, new BadRequest(`Ошибка: ${err.message}`));
