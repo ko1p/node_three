@@ -2,48 +2,47 @@ const Card = require('../models/card');
 const NotFoundError = require('../errors/notFoundError');
 const ForbiddenError = require('../errors/forbiddenError');
 const BadRequest = require('../errors/badRequest');
-const InternalServerError = require('../errors/internalServerError');
 const handlerErrors = require('../errors/handlerErrors');
 
-const getAllCards = ((req, res, next) => {
+const getAllCards = ((req, res) => {
   Card.find({})
     .then((card) => res.send({ data: card }))
-    .catch(() => next(new InternalServerError('Произошла ошибка')));
+    .catch((err) => handlerErrors(req, res, err));
 });
 
-const createCard = ((req, res, next) => {
+const createCard = ((req, res) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user._id })
     .then((newCard) => res.send({ data: newCard }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequest(`Введены некорректные данные ${err.message}`));
-      } else {
-        next(new InternalServerError('Произошла ошибка'));
-      }
-    });
-});
-
-const deleteCard = ((req, res, next) => {
-  Card.findById(req.params.cardId)
-    .orFail(() => new NotFoundError('Ошибка, карточки с таким id нет'))
-    .then((card) => {
-      if (card.owner.toString() === req.user._id) {
-        card.remove();
-        return res.send({ data: card });
-      }
-      return Promise.reject(new ForbiddenError('Вы можете удалять только свои карточки'));
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequest(`Введены некорректные данные ${err.message}`));
+        handlerErrors(req, res, new BadRequest(`Ошибка: ${err.message}`));
       } else {
         handlerErrors(req, res, err);
       }
     });
 });
 
-const likeCard = ((req, res, next) => {
+const deleteCard = ((req, res) => {
+  Card.findById(req.params.cardId)
+    .orFail(() => new NotFoundError('Ошибка, карточки с таким id нет'))
+    .then((card) => {
+      if (card.owner.toString() === req.user._id) {
+        return card.remove()
+          .then(() => res.send({ data: card }));
+      }
+      return Promise.reject(new ForbiddenError('Вы можете удалять только свои карточки'));
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        handlerErrors(req, res, new BadRequest(`Введены некорректные данные ${err.message}`));
+      } else {
+        handlerErrors(req, res, err);
+      }
+    });
+});
+
+const likeCard = ((req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
@@ -53,14 +52,14 @@ const likeCard = ((req, res, next) => {
     .then(() => res.send({ message: 'Карточка лайкнута' }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadRequest(`Введены некорректные данные ${err.message}`));
+        handlerErrors(req, res, new BadRequest(`Введены некорректные данные ${err.message}`));
       } else {
         handlerErrors(req, res, err);
       }
     });
 });
 
-const dislikeCard = ((req, res, next) => {
+const dislikeCard = ((req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
@@ -70,7 +69,7 @@ const dislikeCard = ((req, res, next) => {
     .then(() => res.send({ message: 'Лайк с карточки успешно убран' }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadRequest(`Введены некорректные данные ${err.message}`));
+        handlerErrors(req, res, new BadRequest(`Введены некорректные данные ${err.message}`));
       } else {
         handlerErrors(req, res, err);
       }
