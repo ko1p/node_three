@@ -8,9 +8,8 @@ const NotFoundError = require('../errors/notFoundError');
 const BadRequest = require('../errors/badRequest');
 const Unauthorized = require('../errors/unauthorized');
 const Conflict = require('../errors/conflict');
-const handlerErrors = require('../errors/handlerErrors');
 
-const login = ((req, res) => {
+const login = ((req, res, next) => {
   const { email, password } = req.body;
   User.findUserByCredentials(email, password)
     .then((user) => {
@@ -27,30 +26,30 @@ const login = ((req, res) => {
       res.send({ token });
     })
     .catch((err) => {
-      handlerErrors(req, res, new Unauthorized(`${err.message}`));
+      next(new Unauthorized(`${err.message}`));
     });
 });
 
-const getAllUsers = ((req, res) => {
+const getAllUsers = ((req, res, next) => {
   User.find({})
     .then((allUsers) => res.send({ data: allUsers }))
-    .catch((err) => handlerErrors(req, res, err));
+    .catch((err) => next(err));
 });
 
-const getUser = (req, res) => {
+const getUser = (req, res, next) => {
   User.findById(req.params.userId)
     .orFail(() => new NotFoundError('Пользователь с таким id не найден'))
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        handlerErrors(req, res, new BadRequest(`Введены некорректные данные ${err.message}`));
+        next(new BadRequest(`Введены некорректные данные ${err.message}`));
       } else {
-        handlerErrors(req, res, err);
+        next(err);
       }
     });
 };
 
-const createUser = ((req, res) => {
+const createUser = ((req, res, next) => {
   const {
     name, email, password, about, avatar,
   } = req.body;
@@ -62,17 +61,17 @@ const createUser = ((req, res) => {
         .then((user) => res.send({ data: user.hideHash() }))
         .catch((err) => {
           if (err.name === 'ValidationError') {
-            handlerErrors(req, res, new BadRequest(`Ошибка: ${err.message}`));
+            next(new BadRequest(`Ошибка: ${err.message}`));
           } else if (err.code === 11000) {
-            handlerErrors(req, res, new Conflict(`Указанный вами email: ${req.body.email} уже используется`));
+            next(new Conflict(`Указанный вами email: ${req.body.email} уже используется`));
           } else {
-            handlerErrors(req, res, err);
+            next(err);
           }
         });
     });
 });
 
-const updateUserProfile = ((req, res) => {
+const updateUserProfile = ((req, res, next) => {
   User.findByIdAndUpdate(req.user._id, {
     name: req.body.name,
     about: req.body.about,
@@ -84,14 +83,14 @@ const updateUserProfile = ((req, res) => {
     .then((userProfile) => res.send({ data: userProfile }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        handlerErrors(req, res, new BadRequest(`Ошибка: ${err.message}`));
+        next(new BadRequest(`Ошибка: ${err.message}`));
       } else {
-        handlerErrors(req, res, err);
+        next(err);
       }
     });
 });
 
-const updateUserAvatar = ((req, res) => {
+const updateUserAvatar = ((req, res, next) => {
   User.findByIdAndUpdate(req.user._id, { avatar: req.body.avatar }, {
     new: true,
     runValidators: true,
@@ -100,9 +99,9 @@ const updateUserAvatar = ((req, res) => {
     .then((userProfile) => res.send({ data: userProfile }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        handlerErrors(req, res, new BadRequest(`Ошибка: ${err.message}`));
+        next(new BadRequest(`Ошибка: ${err.message}`));
       } else {
-        handlerErrors(req, res, err);
+        next(err);
       }
     });
 });
