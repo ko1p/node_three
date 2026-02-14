@@ -17,10 +17,10 @@
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
-    "body-parser": "^1.20.1",
+    "body-parser": "^1.20.4",
     "cookie-parser": "^1.4.7",
     "dotenv": "^8.2.0",
-    "express": "^4.21.2",
+    "express": "^4.22.1",
     "helmet": "^3.22.0",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^8.9.5",
